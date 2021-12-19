@@ -1,16 +1,13 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class InfoMessage:
-    def __init__(self,
-                 training_type: str,
-                 duration: float,
-                 distance: float,
-                 speed: float,
-                 calories: float,
-                 ) -> None:
-        self.training_type = training_type
-        self.duration = duration
-        self.distance = distance
-        self.speed = speed
-        self.calories = calories
+    training_type: str
+    duration: float
+    distance: float
+    speed: float
+    calories: float
 
     def get_message(self):
         return (
@@ -25,13 +22,6 @@ class InfoMessage:
 class Training:
     M_IN_KM: int = 1000
     LEN_STEP: float = 0.65
-    run_coeff_1: int = 18
-    run_coeff_2: int = 20
-    min_in_hour: int = 60
-    wlk_coeff_1: float = 0.035
-    wlk_coeff_2: float = 0.029
-    swm_coeff_1: float = 1.1
-    swm_coeff_2: int = 2
 
     def __init__(self,
                  action: int,
@@ -43,7 +33,7 @@ class Training:
         self.weight = weight
 
     def get_distance(self) -> float:
-        return self.action * Training.LEN_STEP / self.M_IN_KM
+        return self.action * self.LEN_STEP / self.M_IN_KM
 
     def get_mean_speed(self) -> float:
         return self.get_distance() / self.duration
@@ -62,9 +52,12 @@ class Training:
 class Running(Training):
 
     def get_spent_calories(self) -> float:
-        time_in_minutes = self.duration * Training.min_in_hour
-        return ((Training.run_coeff_1 * self.get_mean_speed()
-                - Training.run_coeff_2) * self.weight / Training.M_IN_KM
+        RUN_COEFF_1: int = 18
+        RUN_COEFF_2: int = 20
+        MIN_IN_HOUR: int = 60
+        time_in_minutes = self.duration * MIN_IN_HOUR
+        return ((RUN_COEFF_1 * self.get_mean_speed()
+                - RUN_COEFF_2) * self.weight / self.M_IN_KM
                 * time_in_minutes)
 
 
@@ -78,10 +71,14 @@ class SportsWalking(Training):
         self.height = height
 
     def get_spent_calories(self) -> float:
-        time_in_minutes = self.duration * Training.min_in_hour
-        return (Training.wlk_coeff_1 * self.weight
-                + (self.get_mean_speed() ** 2 // self.height)
-                * Training.wlk_coeff_2 * self.weight) * time_in_minutes
+        WLK_COEFF_1: float = 0.035
+        WLK_COEFF_2: float = 0.029
+        WLK_COEFF_3: int = 2
+        MIN_IN_HOUR: int = 60
+        time_in_minutes = self.duration * MIN_IN_HOUR
+        return (WLK_COEFF_1 * self.weight
+                + (self.get_mean_speed() ** WLK_COEFF_3 // self.height)
+                * WLK_COEFF_2 * self.weight) * time_in_minutes
 
 
 class Swimming(Training):
@@ -98,15 +95,17 @@ class Swimming(Training):
         self.count_pool = count_pool
 
     def get_distance(self) -> float:
-        return self.action * self.LEN_STEP / Training.M_IN_KM
+        return self.action * self.LEN_STEP / self.M_IN_KM
 
     def get_mean_speed(self) -> float:
         return (self.length_pool * self.count_pool
                 / self.M_IN_KM / self.duration)
 
     def get_spent_calories(self) -> float:
-        return ((self.get_mean_speed() + Training.swm_coeff_1)
-                * Training.swm_coeff_2 * self.weight)
+        SWM_COEFF_1: float = 1.1
+        SWM_COEFF_2: int = 2
+        return ((self.get_mean_speed() + SWM_COEFF_1)
+                * SWM_COEFF_2 * self.weight)
 
 
 def read_package(workout_type: str, data: list) -> Training:
