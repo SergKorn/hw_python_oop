@@ -45,7 +45,7 @@ class Training:
         return self.get_distance() / self.duration
 
     def get_spent_calories(self) -> float:
-        pass
+        return NotImplementedError
 
     def show_training_info(self) -> InfoMessage:
         return InfoMessage(
@@ -58,13 +58,14 @@ class Training:
 
 
 class Running(Training):
+    run_coeff_1: int = 18
+    run_coeff_2: int = 20
+    min_in_hour: int = 60
+
     def get_spent_calories(self) -> float:
-        run_coeff_1: int = 18
-        run_coeff_2: int = 20
-        min_in_hour: int = 60
-        time_in_minutes = self.duration * min_in_hour
+        time_in_minutes = self.duration * self.min_in_hour
         return (
-            (run_coeff_1 * self.get_mean_speed() - run_coeff_2)
+            (self.run_coeff_1 * self.get_mean_speed() - self.run_coeff_2)
             * self.weight
             / self.M_IN_KM
             * time_in_minutes
@@ -72,6 +73,11 @@ class Running(Training):
 
 
 class SportsWalking(Training):
+    wlk_coeff_1: float = 0.035
+    wlk_coeff_2: float = 0.029
+    wlk_coeff_3: int = 2
+    min_in_hour: int = 60
+
     def __init__(
         self, action: int, duration: float, weight: float, height: float
     ) -> None:
@@ -79,21 +85,19 @@ class SportsWalking(Training):
         self.height = height
 
     def get_spent_calories(self) -> float:
-        wlk_coeff_1: float = 0.035
-        wlk_coeff_2: float = 0.029
-        wlk_coeff_3: int = 2
-        min_in_hour: int = 60
-        time_in_minutes = self.duration * min_in_hour
+        time_in_minutes = self.duration * self.min_in_hour
         return (
-            wlk_coeff_1 * self.weight
-            + (self.get_mean_speed() ** wlk_coeff_3 // self.height)
-            * wlk_coeff_2
+            self.wlk_coeff_1 * self.weight
+            + (self.get_mean_speed() ** self.wlk_coeff_3 // self.height)
+            * self.wlk_coeff_2
             * self.weight
         ) * time_in_minutes
 
 
 class Swimming(Training):
     LEN_STEP: float = 1.38
+    swm_coeff_1: float = 1.1
+    swm_coeff_2: int = 2
 
     def __init__(
         self,
@@ -115,15 +119,19 @@ class Swimming(Training):
                 / self.M_IN_KM / self.duration)
 
     def get_spent_calories(self) -> float:
-        swm_coeff_1: float = 1.1
-        swm_coeff_2: int = 2
-        return ((self.get_mean_speed() + swm_coeff_1)
-                * swm_coeff_2 * self.weight)
+        return (
+            (self.get_mean_speed() + self.swm_coeff_1)
+            * self.swm_coeff_2 * self.weight
+        )
 
 
 def read_package(workout_type: str, data: list) -> Training:
     type_of_training = {"SWM": Swimming, "RUN": Running, "WLK": SportsWalking}
-    return type_of_training[workout_type](*data)
+    redirection = type_of_training.get(workout_type)
+    if redirection is None:
+        raise print("Ошибка запроса! Тип тренировки не описан.")
+    else:
+        return redirection(*data)
 
 
 def main(training: Training) -> None:
