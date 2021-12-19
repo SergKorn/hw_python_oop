@@ -8,23 +8,18 @@ class InfoMessage:
     distance: float
     speed: float
     calories: float
-    TRAINING_RESULT_1 = "Тип тренировки: "
-    TRAINING_RESULT_2 = "Длительность: "
-    TRAINING_RESULT_3 = "Дистанция: "
-    TRAINING_RESULT_4 = "Ср. скорость: "
-    TRAINING_RESULT_5 = "Потрачено ккал: "
-
 
     def get_message(self):
-    #string_txt = "Тип тренировки: {self.training_type}; Длительность: {duration} ч.; Дистанция: {self.distance} км; Ср. скорость: {self.speed} км/ч; Потрачено ккал: {self.calories}"
-    #print(string_txt.format(training_type, duration, distance, speed, calories))
-        return(
-            f"{self.TRAINING_RESULT_1}{self.training_type}; "
-            f"{self.TRAINING_RESULT_2}{self.duration:.3f} ч.; "
-            f"{self.TRAINING_RESULT_3}{self.distance:.3f} км; "
-            f"{self.TRAINING_RESULT_4}{self.speed:.3f} км/ч; "
-            f"{self.TRAINING_RESULT_5}{self.calories:.3f}."
-        )
+        string_txt = (f'Тип тренировки: {self.training_type}; '
+                      f'Длительность: {self.duration:.3f} ч.; '
+                      f'Дистанция: {self.distance:.3f} км; '
+                      f'Ср. скорость: {self.speed:.3f} км/ч; '
+                      f'Потрачено ккал: {self.calories:.3f}.')
+        return (string_txt.format(self.training_type,
+                                  self.duration,
+                                  self.distance,
+                                  self.speed,
+                                  self.calories))
 
 
 class Training:
@@ -49,7 +44,7 @@ class Training:
         return self.get_distance() / self.duration
 
     def get_spent_calories(self) -> float:
-        return NotImplementedError
+        raise TypeError
 
     def show_training_info(self) -> InfoMessage:
         return InfoMessage(
@@ -129,11 +124,10 @@ class Swimming(Training):
 
 def read_package(workout_type: str, data: list) -> Training:
     type_of_training = {"SWM": Swimming, "RUN": Running, "WLK": SportsWalking}
-    redirection = type_of_training.get(workout_type)
-    if redirection is None:
-        raise print("Ошибка запроса! Тип тренировки не описан.")
-    else:
-        return redirection(*data)
+    training_type = type_of_training.get(workout_type)
+    if training_type is None:
+        raise ValueError
+    return training_type(*data)
 
 
 def main(training: Training) -> None:
