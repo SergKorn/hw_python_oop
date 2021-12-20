@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from typing import Dict, Type
 
 
 @dataclass
@@ -9,17 +10,14 @@ class InfoMessage:
     speed: float
     calories: float
 
-    def get_message(self):
-        string_txt = (f'Тип тренировки: {self.training_type}; '
-                      f'Длительность: {self.duration:.3f} ч.; '
-                      f'Дистанция: {self.distance:.3f} км; '
-                      f'Ср. скорость: {self.speed:.3f} км/ч; '
-                      f'Потрачено ккал: {self.calories:.3f}.')
-        return (string_txt.format(self.training_type,
-                                  self.duration,
-                                  self.distance,
-                                  self.speed,
-                                  self.calories))
+    RESULT: str = ("Тип тренировки: {training_type}; "
+                   "Длительность: {duration:.3f} ч.; "
+                   "Дистанция: {distance:.3f} км; "
+                   "Ср. скорость: {speed:.3f} км/ч; "
+                   "Потрачено ккал: {calories:.3f}.")
+
+    def get_message(self) -> str:
+        return self.RESULT.format(**asdict(self))
 
 
 class Training:
@@ -44,7 +42,7 @@ class Training:
         return self.get_distance() / self.duration
 
     def get_spent_calories(self) -> float:
-        raise TypeError
+        raise NotImplementedError
 
     def show_training_info(self) -> InfoMessage:
         return InfoMessage(
@@ -123,11 +121,14 @@ class Swimming(Training):
 
 
 def read_package(workout_type: str, data: list) -> Training:
-    type_of_training = {"SWM": Swimming, "RUN": Running, "WLK": SportsWalking}
-    training_type = type_of_training.get(workout_type)
-    if training_type is None:
-        raise ValueError
-    return training_type(*data)
+    dict: Dict[str, Type[Training]] = {
+        "SWM": Swimming,
+        "RUN": Running,
+        "WLK": SportsWalking,
+    }
+    if dict.get(workout_type) is None:
+        raise Exception("Ошибка!!! Активность не определена ;)")
+    return dict[workout_type](*data)
 
 
 def main(training: Training) -> None:
